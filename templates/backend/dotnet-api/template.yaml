@@ -1,65 +1,73 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: example-nodejs-template
-  title: Example Node.js Template
-  description: An example template for the scaffolder that creates a simple Node.js service
+  name: dotnet-webapi
+  title: Web API .NET
+  description: Cria uma Web API .NET 8 com Docker
+  tags:
+    - dotnet
+    - webapi
+    - api
+
 spec:
-  owner: user:guest
+  owner: platform-team
   type: service
 
   parameters:
-    - title: Fill in some steps
+    - title: Informações do Serviço
       required:
-        - name
+        - componentId
+        - description
       properties:
-        name:
-          title: Name
+        componentId:
+          title: Nome do serviço
           type: string
-          description: Unique name of the component
-          ui:autofocus: true
+          description: Nome único do componente e repositório
+        description:
+          title: Descrição
+          type: string
+
+    - title: Repositório GitHub
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: Repositório
+          type: string
+          ui:field: RepoUrlPicker
           ui:options:
-            rows: 5
+            allowedHosts:
+              - github.com
 
   steps:
     - id: fetch-base
-      name: Fetch Base
+      name: Gerar código base
       action: fetch:template
       input:
         url: ./content
         values:
-          name: ${{ parameters.name }}
+          componentId: ${{ parameters.componentId }}
+          description: ${{ parameters.description }}
 
     - id: publish
-      name: Publish
+      name: Criar repositório no GitHub
       action: publish:github
       input:
-        description: This is ${{ parameters.name }}
-        repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.name }}
-        defaultBranch: 'main'
+        repoUrl: ${{ parameters.repoUrl }}
+        description: ${{ parameters.description }}
+        defaultBranch: main
 
     - id: register
-      name: Register
+      name: Registrar no catálogo
       action: catalog:register
       input:
-        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
-        catalogInfoPath: '/catalog-info.yaml'
-
-    - id: notify
-      name: Notify
-      action: notification:send
-      input:
-        recipients: entity
-        entityRefs:
-          - user:default/guest
-        title: 'Template executed'
-        info: 'Your template has been executed'
-        severity: 'normal'
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
 
   output:
     links:
-      - title: Repository
-        url: ${{ steps['publish'].output.remoteUrl }}
-      - title: Open in catalog
+      - title: Repositório GitHub
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Abrir no Catálogo
         icon: catalog
-        entityRef: ${{ steps['register'].output.entityRef }}
+        entityRef: component:${{ parameters.componentId }}

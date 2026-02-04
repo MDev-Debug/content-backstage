@@ -1,8 +1,12 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: backend-dev-utils
+  name: {{ componentId }}
+  description: {{ description }}
+  tags:
+    - dotnet
+    - webapi
 spec:
   type: service
-  owner: user:guest
   lifecycle: experimental
+  owner: platform-team
