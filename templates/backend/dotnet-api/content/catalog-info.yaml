@@ -1,8 +1,7 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: {{ componentId }}
-  description: {{ description }}
+  name: {{ name }}
   tags:
     - dotnet
     - webapi
