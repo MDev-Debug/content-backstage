@@ -27,18 +27,6 @@ spec:
           title: Descrição
           type: string
 
-    - title: Repositório GitHub
-      required:
-        - repoUrl
-      properties:
-        repoUrl:
-          title: Repositório
-          type: string
-          ui:field: RepoUrlPicker
-          ui:options:
-            allowedHosts:
-              - github.com
-
   steps:
     - id: fetch-base
       name: Gerar código base
@@ -53,7 +41,7 @@ spec:
       name: Criar repositório no GitHub
       action: publish:github
       input:
-        repoUrl: ${{ parameters.repoUrl }}
+        repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.name }}
         description: ${{ parameters.description }}
         defaultBranch: main
 
