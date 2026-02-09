@@ -9,7 +9,7 @@ metadata:
     - api
     - base
 spec:
-  owner: user@example.com
+  owner: group:default/platform-team
   type: service
 
   parameters:
