@@ -1,66 +1,39 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: dotnet-api-base
-  title: API .NET Base
-  description: Template base para criação de uma nova API .NET 8
+  name: dotnet-webapi
+  title: Web API .NET
+  description: Cria uma Web API .NET 8 com Docker
   tags:
     - dotnet
+    - webapi
     - api
-    - backend
 spec:
-  owner: group:default/platform-team
+  owner: platform-team
   type: service
 
   parameters:
-    - title: Informações Básicas
+    - title: Informações do serviço
       required:
         - name
-        - description
-        - owner
       properties:
         name:
-          title: Nome do Projeto
+          title: Nome
           type: string
-          pattern: '^[a-z][a-z0-9-]+$'
-          description: Nome do serviço (ex: orders-api)
-
-        description:
-          title: Descrição
-          type: string
-
-        owner:
-          title: Time Responsável
-          type: string
-          ui:field: OwnerPicker
-          ui:options:
-            allowedKinds: [Group]
-
-    - title: Repositório
-      required:
-        - repoUrl
-      properties:
-        repoUrl:
-          title: Repositório GitHub
-          type: string
-          ui:field: RepoUrlPicker
-          ui:options:
-            allowedHosts:
-              - github.com
+          description: Nome único do componente
+          ui:autofocus: true
 
   steps:
-    - id: fetch
-      name: Criando projeto .NET
+    - id: fetch-base
+      name: Fetch Base
       action: fetch:template
       input:
-        url: ./skeleton
+        url: ./content
         values:
           name: ${{ parameters.name }}
-          description: ${{ parameters.description }}
-          owner: ${{ parameters.owner }}
 
     - id: publish
-      name: Publicando no GitHub
+      name: Publish
       action: publish:github
       input:
         description: Serviço ${{ parameters.name }}
@@ -73,6 +46,17 @@ spec:
       input:
         repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
         catalogInfoPath: /catalog-info.yaml
+
+    - id: notify
+      name: Notify
+      action: notification:send
+      input:
+        recipients: entity
+        entityRefs:
+          - user:default/guest
+        title: Template executado
+        info: Seu template foi executado com sucesso
+        severity: normal
 
   output:
     links:
