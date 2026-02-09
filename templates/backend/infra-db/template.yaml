@@ -10,7 +10,7 @@ metadata:
     - sqlserver
     - efcore
 spec:
-  owner: user@example.com
+  owner: platform-team
   type: service
 
   parameters:
