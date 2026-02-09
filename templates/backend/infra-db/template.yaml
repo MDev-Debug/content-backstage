@@ -1,29 +1,52 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: infra-template
-  title: .NET Infrastructure Add-on
-  description: Adiciona AppDatabaseContext.cs ao projeto existente
+  name: infra-db
+  title: .NET Infrastructure DB Add-on
+  description: Adiciona AppDatabaseContext e pacotes EF Core via snippets
 spec:
-  owner: user:guest
+  owner: platform-team
   type: service
 
   parameters:
     - title: Informações do Projeto
       required:
         - name
+        - repoUrl
       properties:
         name:
           title: Nome do Projeto
           type: string
           description: O nome do projeto (deve coincidir com o projeto base)
+        repoUrl:
+          title: URL do Repositório
+          type: string
+          description: A URL do repositório onde o código será adicionado
 
   steps:
     - id: fetch-base
-      name: Buscando Skeleton de Infraestrutura
+      name: Buscando Skeleton
       action: fetch:template
       input:
         url: ./skeleton
+        values:
+          name: ${{ parameters.name }}
+
+    - id: add-dbcontext
+      name: Adicionando AppDatabaseContext
+      action: fetch:template
+      input:
+        url: ./snippets/AppDatabaseContext.cs
+        targetPath: ${{ parameters.name }}.Infrastructure/Data/AppDatabaseContext.cs
+        values:
+          name: ${{ parameters.name }}
+
+    - id: add-packages
+      name: Adicionando Pacotes EF Core
+      action: fetch:template
+      input:
+        url: ./snippets/efcore_sqlserver_packages.xml
+        targetPath: snippets/efcore_sqlserver_packages.xml
         values:
           name: ${{ parameters.name }}
 
@@ -31,10 +54,10 @@ spec:
       name: Abrir Pull Request
       action: publish:github:pull-request
       input:
-        repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.name }}
-        branchName: 'add-infrastructure-context'
-        title: 'Adicionando AppDatabaseContext'
-        description: 'Este PR adiciona o AppDatabaseContext.cs na camada de infraestrutura.'
+        repoUrl: ${{ parameters.repoUrl }}
+        branchName: 'feat/add-infra-db-snippets'
+        title: 'feat: add infrastructure db context and packages'
+        description: 'Este PR adiciona o AppDatabaseContext.cs e as referências de pacotes EF Core.'
 
   output:
     links:
