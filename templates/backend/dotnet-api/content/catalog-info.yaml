@@ -1,7 +1,9 @@
 apiVersion: backstage.io/v1alpha1
-kind: Location
+kind: Component
 metadata:
   name: {{ values.name }}
+  description: Web API .NET 8
 spec:
-  targets:
-    - ./template.yaml
+  type: service
+  lifecycle: production
+  owner: platform-team
