@@ -8,25 +8,20 @@ metadata:
     - dotnet
     - webapi
     - api
-
 spec:
   owner: platform-team
   type: service
 
-  # These parameters are used to generate the input form in the frontend, and are
-  # used to gather input data for the execution of the template.
   parameters:
-    - title: Fill in some steps
+    - title: Informações do serviço
       required:
         - name
       properties:
         name:
-          title: Name
+          title: Nome
           type: string
-          description: Unique name of the component
+          description: Nome único do componente
           ui:autofocus: true
-          ui:options:
-            rows: 5
 
   steps:
     - id: fetch-base
@@ -41,16 +36,16 @@ spec:
       name: Publish
       action: publish:github
       input:
-        description: This is ${{ parameters.name }}
+        description: Serviço ${{ parameters.name }}
         repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.name }}
-        defaultBranch: 'main'
+        defaultBranch: main
 
     - id: register
       name: Register
       action: catalog:register
       input:
         repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
-        catalogInfoPath: '/catalog-info.yaml'
+        catalogInfoPath: /catalog-info.yaml
 
     - id: notify
       name: Notify
@@ -59,9 +54,9 @@ spec:
         recipients: entity
         entityRefs:
           - user:default/guest
-        title: 'Template executed'
-        info: 'Your template has been executed'
-        severity: 'normal'
+        title: Template executado
+        info: Seu template foi executado com sucesso
+        severity: normal
 
   output:
     links:
