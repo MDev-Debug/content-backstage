@@ -63,22 +63,21 @@ spec:
       name: Publicando no GitHub
       action: publish:github
       input:
-        allowedHosts: ['github.com']
-        repoUrl: ${{ parameters.repoUrl }}
-        description: ${{ parameters.description }}
+        description: Serviço ${{ parameters.name }}
+        repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.name }}
         defaultBranch: main
 
     - id: register
-      name: Registrando no Catálogo
+      name: Register
       action: catalog:register
       input:
-        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
-        catalogInfoPath: catalog-info.yaml
+        repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
+        catalogInfoPath: /catalog-info.yaml
 
   output:
     links:
-      - title: Repositório
-        url: ${{ steps.publish.output.remoteUrl }}
-      - title: Entidade no Catálogo
+      - title: Repository
+        url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Open in catalog
         icon: catalog
-        entityRef: ${{ steps.register.output.entityRef }}
+        entityRef: ${{ steps['register'].output.entityRef }}

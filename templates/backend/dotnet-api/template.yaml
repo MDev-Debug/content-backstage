@@ -58,14 +58,6 @@ spec:
         info: Seu template foi executado com sucesso
         severity: normal
 
-    - id: delete-repo
-      name: Delete GitHub Repository
-      action: github:repo:delete
-      input:
-        owner: MDev-Debug
-        repo: ${{ parameters.name }}
-
-
   output:
     links:
       - title: Repository
