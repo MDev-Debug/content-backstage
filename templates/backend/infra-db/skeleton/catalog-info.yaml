@@ -1,0 +1,9 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: infra-db
+  description: Infraestrutura SQL Server para Web API .NET 8
+spec:
+  type: service
+  lifecycle: production
+  owner: platform-team
