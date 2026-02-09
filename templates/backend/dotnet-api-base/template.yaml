@@ -33,7 +33,7 @@ spec:
       input:
         allowedHosts: ['github.com']
         description: 'Nova Web API criada via Backstage'
-        repoUrl: 'github.com?owner=meu-org&repo=${{ parameters.name }}'
+        repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.name }}
 
     - id: register
       name: Registrar no Catálogo

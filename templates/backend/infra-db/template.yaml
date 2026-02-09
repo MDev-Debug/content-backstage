@@ -12,16 +12,11 @@ spec:
     - title: Informações do Projeto
       required:
         - name
-        - repoUrl
       properties:
         name:
           title: Nome do Projeto
           type: string
           description: O nome do projeto (deve coincidir com o projeto base)
-        repoUrl:
-          title: URL do Repositório
-          type: string
-          description: A URL do repositório onde o código será adicionado
 
   steps:
     - id: fetch-base
@@ -36,7 +31,7 @@ spec:
       name: Abrir Pull Request
       action: publish:github:pull-request
       input:
-        repoUrl: ${{ parameters.repoUrl }}
+        repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.name }}
         branchName: 'add-infrastructure-context'
         title: 'Adicionando AppDatabaseContext'
         description: 'Este PR adiciona o AppDatabaseContext.cs na camada de infraestrutura.'
