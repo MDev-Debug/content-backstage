@@ -3,11 +3,11 @@ kind: Template
 metadata:
   name: dotnet-api-base
   title: API .NET Base
-  description: Template base para criação de uma nova API .NET 8.0
+  description: Template base para criação de uma nova API .NET 8
   tags:
     - dotnet
     - api
-    - base
+    - backend
 spec:
   owner: group:default/platform-team
   type: service
@@ -17,30 +17,31 @@ spec:
       required:
         - name
         - description
+        - owner
       properties:
         name:
           title: Nome do Projeto
           type: string
-          description: Nome da nova API (ex: my-cool-api)
+          pattern: '^[a-z][a-z0-9-]+$'
+          description: Nome do serviço (ex: orders-api)
+
         description:
           title: Descrição
           type: string
-          description: Uma breve descrição do serviço
+
         owner:
-          title: Proprietário
+          title: Time Responsável
           type: string
-          description: Grupo ou pessoa responsável
           ui:field: OwnerPicker
           ui:options:
-            catalogFilter:
-              kind: Group
+            allowedKinds: [Group]
 
-    - title: Localização do Repositório
+    - title: Repositório
       required:
         - repoUrl
       properties:
         repoUrl:
-          title: URL do Repositório
+          title: Repositório GitHub
           type: string
           ui:field: RepoUrlPicker
           ui:options:
@@ -48,34 +49,36 @@ spec:
               - github.com
 
   steps:
-    - id: fetch-base
-      name: Buscando Esqueleto Base
+    - id: fetch
+      name: Criando projeto .NET
       action: fetch:template
       input:
         url: ./skeleton
         values:
           name: ${{ parameters.name }}
           description: ${{ parameters.description }}
+          owner: ${{ parameters.owner }}
 
     - id: publish
       name: Publicando no GitHub
       action: publish:github
       input:
         allowedHosts: ['github.com']
-        description: ${{ parameters.description }}
         repoUrl: ${{ parameters.repoUrl }}
+        description: ${{ parameters.description }}
+        defaultBranch: main
 
     - id: register
       name: Registrando no Catálogo
       action: catalog:register
       input:
         repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
-        catalogInfoPath: '/catalog-info.yaml'
+        catalogInfoPath: catalog-info.yaml
 
   output:
     links:
       - title: Repositório
         url: ${{ steps.publish.output.remoteUrl }}
-      - title: Abrir no Catálogo
+      - title: Entidade no Catálogo
         icon: catalog
         entityRef: ${{ steps.register.output.entityRef }}
