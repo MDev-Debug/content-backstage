@@ -28,21 +28,35 @@ spec:
           name: ${{ parameters.name }}
 
     - id: publish
-      name: Publicar no GitHub
+      name: Publish
       action: publish:github
       input:
-        allowedHosts: ['github.com']
-        description: 'Nova Web API criada via Backstage'
+        description: Serviço ${{ parameters.name }}
         repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.name }}
+        defaultBranch: main
 
     - id: register
-      name: Registrar no Catálogo
+      name: Register
       action: catalog:register
       input:
         repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
-        catalogInfoPath: '/catalog-info.yaml'
+        catalogInfoPath: /catalog-info.yaml
+
+    - id: notify
+      name: Notify
+      action: notification:send
+      input:
+        recipients: entity
+        entityRefs:
+          - user:default/guest
+        title: Template executado
+        info: Seu template foi executado com sucesso
+        severity: normal
 
   output:
     links:
-      - title: Repositório
+      - title: Repository
         url: ${{ steps['publish'].output.remoteUrl }}
+      - title: Open in catalog
+        icon: catalog
+        entityRef: ${{ steps['register'].output.entityRef }}
