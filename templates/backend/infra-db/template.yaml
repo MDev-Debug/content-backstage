@@ -16,16 +16,8 @@ spec:
   parameters:
     - title: Informações do Repositório
       required:
-        - repoUrl
         - projectName
       properties:
-        repoUrl:
-          title: URL do Repositório
-          type: string
-          ui:field: RepoUrlPicker
-          ui:options:
-            allowedHosts:
-              - github.com
         projectName:
           title: Nome do Projeto .NET
           type: string
@@ -51,7 +43,7 @@ spec:
       name: Clonando Repositório Existente
       action: fetch:plain
       input:
-        url: ${{ parameters.repoUrl }}
+        repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.name }}
         targetPath: ./repository
 
     - id: fetch-efcore-packages-snippet
@@ -100,7 +92,7 @@ spec:
       name: Criando Pull Request
       action: publish:github:pull-request
       input:
-        repoUrl: ${{ parameters.repoUrl }}
+        repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.name }}
         title: 'feat: Adiciona infraestrutura SQL Server'
         description: 'Este PR adiciona o Entity Framework Core, SQL Server e configura o DbContext na aplicação.'
         branchName: 'feature/add-sqlserver-infra'
