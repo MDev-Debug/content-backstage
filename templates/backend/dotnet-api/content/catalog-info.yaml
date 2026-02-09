@@ -1,7 +1,7 @@
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: {{ values.name }}
+  name: dotnet-webapi-template
   description: Web API .NET 8
 spec:
   type: service
