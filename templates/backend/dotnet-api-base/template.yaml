@@ -1,7 +1,7 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: dotnet-webapi
+  name: dotnet-base-webapi
   title: Web API .NET
   description: Cria uma Web API .NET 8 com Docker
   tags:
