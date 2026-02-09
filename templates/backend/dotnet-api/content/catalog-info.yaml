@@ -1,7 +1,7 @@
 apiVersion: backstage.io/v1alpha1
 kind: Location
 metadata:
-  name: dotnet-webapi-template
+  name: {{ values.name }}
 spec:
   targets:
     - ./template.yaml
