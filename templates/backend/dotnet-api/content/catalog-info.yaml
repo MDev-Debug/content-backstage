@@ -1,7 +1,15 @@
 apiVersion: backstage.io/v1alpha1
+kind: Component
 kind: Location
 metadata:
+  name: ${{ values.name | dump }}
+  tags:
+    - dotnet
+    - webapi
   name: dotnet-webapi-template
 spec:
+  type: service
+  lifecycle: experimental
+  owner: platform-team
   targets:
     - ./template.yaml
