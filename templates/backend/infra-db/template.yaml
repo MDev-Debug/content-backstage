@@ -1,60 +1,47 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: infra-sqlserver
-  title: Infraestrutura SQL Server
-  description: Adiciona DbContext e SQL Server a uma API .NET existente.
+  name: infra-template
+  title: .NET Infrastructure Add-on
+  description: Adiciona AppDatabaseContext.cs ao projeto existente
 spec:
-  owner: platform-team
+  owner: user:guest
   type: service
 
   parameters:
-    - title: Configuração Básica
+    - title: Informações do Projeto
       required:
-        - projectName
-        - dbContextName
+        - name
+        - repoUrl
       properties:
-        projectName:
-          title: Nome do Projeto .NET
+        name:
+          title: Nome do Projeto
           type: string
-        dbContextName:
-          title: Nome do DbContext
+          description: O nome do projeto (deve coincidir com o projeto base)
+        repoUrl:
+          title: URL do Repositório
           type: string
+          description: A URL do repositório onde o código será adicionado
 
   steps:
-    - id: fetch-repo
-      name: Clonar repositório
-      action: fetch:plain
+    - id: fetch-base
+      name: Buscando Skeleton de Infraestrutura
+      action: fetch:template
       input:
-        repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.projectName }}
-        targetPath: ./repository
+        url: ./skeleton
+        values:
+          name: ${{ parameters.name }}
 
-    - id: create-dbcontext
-      name: Criar DbContext
-      action: roadiehq:utils:fs:write
+    - id: publish-pr
+      name: Abrir Pull Request
+      action: publish:github:pull-request
       input:
-        path: ./repository/${{ parameters.projectName }}/Data/${{ parameters.dbContextName }}.cs
-        content: |
-          using Microsoft.EntityFrameworkCore;
+        repoUrl: ${{ parameters.repoUrl }}
+        branchName: 'add-infrastructure-context'
+        title: 'Adicionando AppDatabaseContext'
+        description: 'Este PR adiciona o AppDatabaseContext.cs na camada de infraestrutura.'
 
-          namespace Data
-          {
-              public class ${{ parameters.dbContextName }} : DbContext
-              {
-                  public ${{ parameters.dbContextName }}(DbContextOptions<${{ parameters.dbContextName }}> options)
-                      : base(options)
-                  {
-                  }
-              }
-          }
-
-    - id: register-dbcontext
-      name: Registrar DbContext
-      action: roadiehq:utils:fs:append
-      input:
-        path: ./repository/${{ parameters.projectName }}/Program.cs
-        after:
-          - "builder.Services"
-        content: |
-          builder.Services.AddDbContext<${{ parameters.dbContextName }}>(options =>
-              options.UseSqlServer("Server=localhost;Database=app;User Id=sa;Password=Your_password123;"));
+  output:
+    links:
+      - title: Pull Request
+        url: ${{ steps['publish-pr'].output.remoteUrl }}

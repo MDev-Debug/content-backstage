@@ -1,31 +1,26 @@
 apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
-  name: dotnet-base-webapi
-  title: Web API .NET
-  description: Cria uma Web API .NET 8 com Docker
-  tags:
-    - dotnet
-    - webapi
-    - api
+  name: web-api-template
+  title: .NET Web API Template
+  description: Cria uma Web API .NET básica com csproj e Program.cs
 spec:
   owner: platform-team
   type: service
 
   parameters:
-    - title: Informações do serviço
+    - title: Informações do Projeto
       required:
         - name
       properties:
         name:
-          title: Nome
+          title: Nome do Projeto
           type: string
-          description: Nome único do componente
-          ui:autofocus: true
+          description: O nome da sua Web API
 
   steps:
     - id: fetch-base
-      name: Fetch Base
+      name: Buscando Skeleton
       action: fetch:template
       input:
         url: ./skeleton
@@ -33,35 +28,21 @@ spec:
           name: ${{ parameters.name }}
 
     - id: publish
-      name: Publish
+      name: Publicar no GitHub
       action: publish:github
       input:
-        description: Serviço ${{ parameters.name }}
-        repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.name }}
-        defaultBranch: main
+        allowedHosts: ['github.com']
+        description: 'Nova Web API criada via Backstage'
+        repoUrl: 'github.com?owner=meu-org&repo=${{ parameters.name }}'
 
     - id: register
-      name: Register
+      name: Registrar no Catálogo
       action: catalog:register
       input:
         repoContentsUrl: ${{ steps['publish'].output.repoContentsUrl }}
-        catalogInfoPath: /catalog-info.yaml
-
-    - id: notify
-      name: Notify
-      action: notification:send
-      input:
-        recipients: entity
-        entityRefs:
-          - user:default/guest
-        title: Template executado
-        info: Seu template foi executado com sucesso
-        severity: normal
+        catalogInfoPath: '/catalog-info.yaml'
 
   output:
     links:
-      - title: Repository
+      - title: Repositório
         url: ${{ steps['publish'].output.remoteUrl }}
-      - title: Open in catalog
-        icon: catalog
-        entityRef: ${{ steps['register'].output.entityRef }}
