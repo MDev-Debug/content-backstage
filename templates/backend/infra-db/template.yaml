@@ -3,102 +3,58 @@ kind: Template
 metadata:
   name: infra-sqlserver
   title: Infraestrutura SQL Server
-  description: Adiciona suporte a SQL Server (Entity Framework Core) a uma API .NET existente.
-  tags:
-    - dotnet
-    - infraestrutura
-    - sqlserver
-    - efcore
+  description: Adiciona DbContext e SQL Server a uma API .NET existente.
 spec:
   owner: platform-team
   type: service
 
   parameters:
-    - title: Informações do Repositório
+    - title: Configuração Básica
       required:
         - projectName
+        - dbContextName
       properties:
         projectName:
           title: Nome do Projeto .NET
           type: string
-          description: O nome do projeto .NET (ex: my-cool-api) onde o SQL Server será adicionado.
-
-    - title: Configuração do Banco de Dados
-      required:
-        - connectionString
-        - dbContextName
-      properties:
-        connectionString:
-          title: String de Conexão do Banco de Dados
-          type: string
-          description: A string de conexão para o SQL Server.
-          ui:field: Secret
         dbContextName:
           title: Nome do DbContext
           type: string
-          description: O nome da classe DbContext (ex: ApplicationDbContext).
 
   steps:
     - id: fetch-repo
-      name: Clonando Repositório Existente
+      name: Clonar repositório
       action: fetch:plain
       input:
-        repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.name }}
+        repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.projectName }}
         targetPath: ./repository
 
-    - id: fetch-efcore-packages-snippet
-      name: Buscando Snippet dos Pacotes NuGet do EF Core e SQL Server
-      action: fetch:plain
-      input:
-        url: ./snippets/efcore_sqlserver_packages.xml
-        targetPath: ./temp-snippets/efcore_sqlserver_packages.xml
-
-    - id: add-efcore-packages
-      name: Adicionando Pacotes NuGet do Entity Framework Core e SQL Server
-      action: roadiehq:utils:fs:append
-      input:
-        path: ./repository/${{ parameters.projectName }}/${{ parameters.projectName }}.csproj
-        content: ${{ fs.read("./temp-snippets/efcore_sqlserver_packages.xml") }}
-        after:
-          - "    <!-- [BACKSTAGE-INSERT-PACKAGES] -->"
-
-    - id: fetch-dbcontext-class-snippet
-      name: Buscando Snippet da Classe DbContext
-      action: fetch:plain
-      input:
-        url: ./snippets/dbcontext_class.cs
-        targetPath: ./temp-snippets/dbcontext_class.cs
-
-    - id: add-dbcontext-file
-      name: Criando Arquivo DbContext
+    - id: create-dbcontext
+      name: Criar DbContext
       action: roadiehq:utils:fs:write
       input:
         path: ./repository/${{ parameters.projectName }}/Data/${{ parameters.dbContextName }}.cs
-        content: ${{ fs.read("./temp-snippets/dbcontext_class.cs") }}
+        content: |
+          using Microsoft.EntityFrameworkCore;
 
-    - id: register-dbcontext-service
-      name: Registrando Serviço DbContext
+          namespace Data
+          {
+              public class ${{ parameters.dbContextName }} : DbContext
+              {
+                  public ${{ parameters.dbContextName }}(DbContextOptions<${{ parameters.dbContextName }}> options)
+                      : base(options)
+                  {
+                  }
+              }
+          }
+
+    - id: register-dbcontext
+      name: Registrar DbContext
       action: roadiehq:utils:fs:append
       input:
         path: ./repository/${{ parameters.projectName }}/Program.cs
+        after:
+          - "builder.Services"
         content: |
           builder.Services.AddDbContext<${{ parameters.dbContextName }}>(options =>
-              options.UseSqlServer("${{ secrets.connectionString }}"));
-
-        after:
-          - "// [BACKSTAGE-INSERT-SERVICES]"
-
-    - id: create-pull-request
-      name: Criando Pull Request
-      action: publish:github:pull-request
-      input:
-        repoUrl: github.com?owner=MDev-Debug&repo=${{ parameters.name }}
-        title: 'feat: Adiciona infraestrutura SQL Server'
-        description: 'Este PR adiciona o Entity Framework Core, SQL Server e configura o DbContext na aplicação.'
-        branchName: 'feature/add-sqlserver-infra'
-        targetBranch: 'main'
-
-  output:
-    links:
-      - title: Pull Request
-        url: ${{ steps.create-pull-request.output.pullRequestUrl }}
+              options.UseSqlServer("Server=localhost;Database=app;User Id=sa;Password=Your_password123;"));
