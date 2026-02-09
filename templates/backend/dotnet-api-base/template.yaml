@@ -1,0 +1,81 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: dotnet-api-base
+  title: API .NET Base
+  description: Template base para criação de uma nova API .NET 8.0
+  tags:
+    - dotnet
+    - api
+    - base
+spec:
+  owner: user@example.com
+  type: service
+
+  parameters:
+    - title: Informações Básicas
+      required:
+        - name
+        - description
+      properties:
+        name:
+          title: Nome do Projeto
+          type: string
+          description: Nome da nova API (ex: my-cool-api)
+        description:
+          title: Descrição
+          type: string
+          description: Uma breve descrição do serviço
+        owner:
+          title: Proprietário
+          type: string
+          description: Grupo ou pessoa responsável
+          ui:field: OwnerPicker
+          ui:options:
+            catalogFilter:
+              kind: Group
+
+    - title: Localização do Repositório
+      required:
+        - repoUrl
+      properties:
+        repoUrl:
+          title: URL do Repositório
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+
+  steps:
+    - id: fetch-base
+      name: Buscando Esqueleto Base
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+
+    - id: publish
+      name: Publicando no GitHub
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        description: ${{ parameters.description }}
+        repoUrl: ${{ parameters.repoUrl }}
+
+    - id: register
+      name: Registrando no Catálogo
+      action: catalog:register
+      input:
+        repoContentsUrl: ${{ steps.publish.output.repoContentsUrl }}
+        catalogInfoPath: '/catalog-info.yaml'
+
+  output:
+    links:
+      - title: Repositório
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Abrir no Catálogo
+        icon: catalog
+        entityRef: ${{ steps.register.output.entityRef }}

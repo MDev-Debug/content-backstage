@@ -1,0 +1,90 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: infra-redis
+  title: Infraestrutura Redis
+  description: Adiciona suporte a Redis a uma API .NET existente.
+  tags:
+    - dotnet
+    - infraestrutura
+    - redis
+spec:
+  owner: user@example.com
+  type: service
+
+  parameters:
+    - title: Informações do Repositório
+      required:
+        - repoUrl
+        - projectName
+      properties:
+        repoUrl:
+          title: URL do Repositório
+          type: string
+          ui:field: RepoUrlPicker
+          ui:options:
+            allowedHosts:
+              - github.com
+        projectName:
+          title: Nome do Projeto .NET
+          type: string
+          description: O nome do projeto .NET (ex: my-cool-api) onde o Redis será adicionado.
+
+    - title: Configuração do Redis
+      required:
+        - redisConnectionString
+      properties:
+        redisConnectionString:
+          title: String de Conexão do Redis
+          type: string
+          description: A string de conexão para o servidor Redis.
+          ui:field: Secret
+
+  steps:
+    - id: fetch-repo
+      name: Clonando Repositório Existente
+      action: fetch:plain
+      input:
+        url: ${{ parameters.repoUrl }}
+        targetPath: ./repository
+
+    - id: fetch-redis-package-snippet
+      name: Buscando Snippet do Pacote NuGet do Redis
+      action: fetch:plain
+      input:
+        url: ./snippets/redis_package.xml
+        targetPath: ./temp-snippets/redis_package.xml
+
+    - id: add-redis-package
+      name: Adicionando Pacote NuGet do Redis
+      action: roadiehq:utils:fs:append
+      input:
+        path: ./repository/${{ parameters.projectName }}/${{ parameters.projectName }}.csproj
+        content: ${{ fs.read("./temp-snippets/redis_package.xml") }}
+        after:
+          - "    <!-- [BACKSTAGE-INSERT-PACKAGES] -->"
+
+    - id: add-redis-service
+      name: Registrando Serviço Redis
+      action: roadiehq:utils:fs:append
+      input:
+        path: ./repository/${{ parameters.projectName }}/Program.cs
+        content:
+          - "builder.Services.AddStackExchangeRedisCache(options =>\n{\n    options.Configuration = \"${{ secrets.redisConnectionString }}\";\n    options.InstanceName = \"${{ parameters.projectName }}_\";\n});\n"
+        after:
+          - "// [BACKSTAGE-INSERT-SERVICES]"
+
+    - id: create-pull-request
+      name: Criando Pull Request
+      action: publish:github:pull-request
+      input:
+        repoUrl: ${{ parameters.repoUrl }}
+        title: 'feat: Adiciona infraestrutura Redis'
+        description: 'Este PR adiciona o pacote NuGet e configura o serviço Redis na aplicação.'
+        branchName: 'feature/add-redis-infra'
+        targetBranch: 'main'
+
+  output:
+    links:
+      - title: Pull Request
+        url: ${{ steps.create-pull-request.output.pullRequestUrl }}
